@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学公式背诵助手</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .formula {
+            background-color: #eee;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .rating-buttons button {
+            margin-right: 10px;
+            padding: 5px 10px;
+        }
+        .nav-buttons button {
+            margin-right: 10px;
+            padding: 5px 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>数学公式背诵助手</h1>
+        <button onclick="startStudy('sequential')">开始背诵（常规模式）</button>
+        <button onclick="startStudy('random')">开始背诵（随机模式）</button>
+        <div id="formulaName" class="formula"></div>
+        <button onclick="showFormula()">查看公式</button>
+        <div id="formulaContent" style="display: flex; justify-content: center;"></div>
+        <div id="ratingButtons" class="rating-buttons">
+            <button onclick="rateProgress('forget')">忘记了</button>
+            <button onclick="rateProgress('blur')">模糊</button>
+            <button onclick="rateProgress('clear')">完全清楚</button>
+        </div>
+        <div class="nav-buttons">
+            <button onclick="navigateFormula('prev')">上一个</button>
+            <button onclick="navigateFormula('next')">下一个</button>
+        </div>
+        <p id="progress"></p>
+    </div>
+
+    <script>
+        const formulas = [
+            { name: "确界原理", image: "images/quejieyuanli.jpg", progress: { times: 0, rating: "" } },
+            { name: "数列极限的定义", image: "images/shuliejixiandedingyi.jpg", progress: { times: 0, rating: "" } },
+            { name: "单调有界定理", image: "images/dandiaoyoujiedingli.jpg", progress: { times: 0, rating: "" } }
+        ];
+        let currentFormulaIndex = 0;
+
+        function startStudy(mode) {
+            if (mode === 'sequential') {
+                currentFormulaIndex = 0;
+            } else if (mode === 'random') {
+                currentFormulaIndex = Math.floor(Math.random() * formulas.length);
+            }
+            showFormulaName();
+        }
+
+        function showFormulaName() {
+            const formulaName = document.getElementById('formulaName');
+            formulaName.textContent = `请默写: ${formulas[currentFormulaIndex].name}`;
+            document.getElementById('formulaContent').innerHTML = '';
+        }
+
+        function showFormula() {
+            const formulaContent = document.getElementById('formulaContent');
+            formulaContent.innerHTML = ''; // 清除之前的内容
+
+            const formulaImage = document.createElement('img');
+            formulaImage.src = formulas[currentFormulaIndex].image;
+            formulaImage.alt = formulas[currentFormulaIndex].name;
+            formulaImage.style.maxWidth = "100%";
+
+            formulaContent.appendChild(formulaImage);
+        }
+
+        function rateProgress(rating) {
+            const formula = formulas[currentFormulaIndex];
+            formula.progress.times += 1;
+            formula.progress.rating = rating;
+            displayProgress();
+            saveProgress();
+        }
+
+        function displayProgress() {
+            const progress = document.getElementById('progress');
+            const formula = formulas[currentFormulaIndex];
+            progress.textContent = `${formula.name} 学习次数: ${formula.progress.times}, 熟练度: ${getRatingName(formula.progress.rating)}`;
+        }
+
+        function getRatingName(rating) {
+            switch (rating) {
+                case 'forget':
+                    return '忘记了';
+                case 'blur':
+                    return '模糊';
+                case 'clear':
+                    return '完全清楚';
+                default:
+                    return '';
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('formulas', JSON.stringify(formulas));
+        }
+
+        function loadProgress() {
+            const savedFormulas = localStorage.getItem('formulas');
+            if (savedFormulas) {
+                const loadedFormulas = JSON.parse(savedFormulas);
+                for (let i = 0; i < loadedFormulas.length; i++) {
+                    formulas[i].progress = loadedFormulas[i].progress;
+                }
+            }
+        }
+
+        function navigateFormula(direction) {
+            if (direction === 'prev') {
+                currentFormulaIndex = (currentFormulaIndex === 0) ? formulas.length - 1 : currentFormulaIndex - 1;
+            } else if (direction === 'next') {
+                currentFormulaIndex = (currentFormulaIndex === formulas.length - 1) ? 0 : currentFormulaIndex + 1;
+            }
+            showFormulaName();
+            displayProgress();
+        }
+
+        window.onload = function() {
+            loadProgress();
+        }
+    </script>
+</body>
+</html>
